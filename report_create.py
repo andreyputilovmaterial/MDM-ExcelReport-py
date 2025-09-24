@@ -39,8 +39,8 @@ class Map:
 
         self.config = config
 
-        if "result_column_headers_global" not in self.config or not self.config["result_column_headers_global"]:
-            self.config["result_column_headers_global"] = ['name']
+        # if "columns" not in self.config or not self.config["columns"]:
+        #     self.config["columns"] = ['name']
         
         self.config['columns'] = [ c for c in (inp['report_scheme']['columns'] if ('columns' in inp['report_scheme']) else []) ] if 'report_scheme' in inp else []
 
@@ -99,10 +99,12 @@ class Map:
                 result_ins_htmlmarkup_title = '{report_desc}: {filepath}'.format(filepath=inp['source_file'],report_desc='File')
                 result_ins_htmlmarkup_heading = '{report_desc}: {filepath}'.format(filepath=inp['source_file'],report_desc='File')
         result_ins_htmlmarkup_banner = []+[{'name':'datetime','value':inp['report_datetime_utc']}]+inp['source_file_metadata']
+        
+        data_add.append(['',result_ins_htmlmarkup_heading])
+        
         for o in result_ins_htmlmarkup_banner:
             data_add.append([o['name'],o['value']])
 
-        data_add.append(['',result_ins_htmlmarkup_heading])
 
         section = {
             'columns': ['name','value'],
@@ -124,7 +126,7 @@ class Map:
         config = self.config
 
         data_add = []
-        result_column_headers = [ '{col}'.format(col=col) for col in section_obj['columns'] ] if 'columns' in section_obj else config["result_column_headers_global"]
+        result_column_headers = [ '{col}'.format(col=col) for col in section_obj['columns'] ] if 'columns' in section_obj else config["columns"]
         for row in ( section_obj['content'] if section_obj['content']else [] ):
             row_add = []
             for col in result_column_headers:
@@ -137,12 +139,12 @@ class Map:
         
         section_id = section_obj['name']
         section_id = re.sub(r'([^a-zA-Z])',lambda m: '_x{d}_'.format(d=ord(m[1])),section_id,flags=re.I)
-        while True:
-            if not (section_id in config["section_ids_used"]):
-                config["section_ids_used"].append(section_id)
-                break
-            else:
-                section_id = section_id+ '_' + str(config["section_ids_used"].index(section_id)+2)
+        # while True:
+        #     if not (section_id in config["section_ids_used"]):
+        #         config["section_ids_used"].append(section_id)
+        #         break
+        #     else:
+        #         section_id = section_id+ '_' + str(config["section_ids_used"].index(section_id)+2)
 
         section = {
             **section_obj,
