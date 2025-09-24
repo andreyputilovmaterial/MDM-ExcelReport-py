@@ -13,19 +13,19 @@ import pandas as pd
 
 if __name__ == '__main__':
     # run as a program
-    #import report_html_template
     import util_dataframe_wrapper
     import format_sheet as excel_format_sheet
+    import format_sheet_overview as excel_format_sheet_overview
 elif '.' in __name__:
     # package
-    #from . import report_html_template
     from . import util_dataframe_wrapper
     from . import format_sheet as excel_format_sheet
+    from . import format_sheet_overview as excel_format_sheet_overview
 else:
     # included with no parent package
-    #import report_html_template
     import util_dataframe_wrapper
     import format_sheet as excel_format_sheet
+    import format_sheet_overview as excel_format_sheet_overview
 
 
 
@@ -72,6 +72,9 @@ class Map:
     
     def prep_index_section_obj(self,inp):
         
+        def sanitize_text_extract_filename(s):
+            return re.sub(r'^.*[/\\](.*?)\s*?$',lambda m: m[1],'{sstr}'.format(sstr=s))
+
         data_add = []
 
         result_ins_htmlmarkup_title = '???'
@@ -80,24 +83,24 @@ class Map:
         result_ins_htmlmarkup_headertext = '{reporttype} Report'.format(reporttype=result_ins_htmlmarkup_reporttype)
         result_ins_htmlmarkup_banner = ''
         if result_ins_htmlmarkup_reporttype=='MDD':
-            result_ins_htmlmarkup_title = 'MDD: {filepath}'.format(filepath=inp['source_file'])
-            result_ins_htmlmarkup_heading = 'MDD: {filepath}'.format(filepath=inp['source_file'])
+            result_ins_htmlmarkup_title = 'MDD: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']))
+            result_ins_htmlmarkup_heading = 'MDD: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']))
             result_ins_htmlmarkup_headertext = '' # it's too obvious, we shouldn't print unnecessary line; it says "MDD" with a very big font size in h1
         elif result_ins_htmlmarkup_reporttype=='diff':
-            result_ins_htmlmarkup_title = 'Diff: {MDD_A} vs {MDD_B}'.format(MDD_A=inp['source_left'],MDD_B=inp['source_right'])
+            result_ins_htmlmarkup_title = 'Diff: {MDD_A} vs {MDD_B}'.format(MDD_A=sanitize_text_extract_filename(inp['source_left']),MDD_B=sanitize_text_extract_filename(inp['source_right']))
             result_ins_htmlmarkup_heading = 'Diff'
         else:
             if( result_ins_htmlmarkup_reporttype and (len(result_ins_htmlmarkup_reporttype)>0) and not (result_ins_htmlmarkup_reporttype=='???') ):
-                result_ins_htmlmarkup_title = '{report_desc}: {filepath}'.format(filepath=inp['source_file'],report_desc=result_ins_htmlmarkup_reporttype)
-                result_ins_htmlmarkup_heading = '{report_desc}: {filepath}'.format(filepath=inp['source_file'],report_desc=result_ins_htmlmarkup_reporttype)
+                result_ins_htmlmarkup_title = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=result_ins_htmlmarkup_reporttype)
+                result_ins_htmlmarkup_heading = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=result_ins_htmlmarkup_reporttype)
             elif len([flag for flag in ( (inp['report_scheme']['flags'] if 'flags' in inp['report_scheme'] else []) if 'report_scheme' in inp else []) if re.match(r'^\s*?data-type\s*?:',flag)])>0:
                 flags_indicating_data_type = [flag for flag in ( (inp['report_scheme']['flags'] if 'flags' in inp['report_scheme'] else []) if 'report_scheme' in inp else []) if re.match(r'^\s*?data-type\s*?:',flag)]
                 data_type_str = '/'.join([re.sub(r'^\s*?data-type\s*?:\s*?(.*?)\s*?$',lambda m: m[1],flag) for flag in flags_indicating_data_type])
-                result_ins_htmlmarkup_title = '{report_desc}: {filepath}'.format(filepath=inp['source_file'],report_desc=data_type_str)
-                result_ins_htmlmarkup_heading = '{report_desc}: {filepath}'.format(filepath=inp['source_file'],report_desc=data_type_str)
+                result_ins_htmlmarkup_title = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=data_type_str)
+                result_ins_htmlmarkup_heading = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=data_type_str)
             else:
-                result_ins_htmlmarkup_title = '{report_desc}: {filepath}'.format(filepath=inp['source_file'],report_desc='File')
-                result_ins_htmlmarkup_heading = '{report_desc}: {filepath}'.format(filepath=inp['source_file'],report_desc='File')
+                result_ins_htmlmarkup_title = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc='File')
+                result_ins_htmlmarkup_heading = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc='File')
         result_ins_htmlmarkup_banner = []+[{'name':'datetime','value':inp['report_datetime_utc']}]+inp['source_file_metadata']
         
         data_add.append(['',result_ins_htmlmarkup_heading])
@@ -180,7 +183,8 @@ class Map:
         with pd.ExcelWriter(out_filename, engine='openpyxl') as writer:
             for o in self.dataframes:
                 o['df'].to_excel(writer, sheet_name=o['name'])
-                excel_format_sheet.format_sheet(writer.sheets[o['name']])
+                format_fn = excel_format_sheet.format_sheet if not(o['name']=='overview') else excel_format_sheet_overview.format_sheet
+                format_fn(writer.sheets[o['name']])
 
 
     # @staticmethod
