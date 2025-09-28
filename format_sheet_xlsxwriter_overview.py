@@ -1,6 +1,6 @@
 
 
-def format_sheet(workbook, worksheet, nrows, ncols):
+def format_sheet(workbook, worksheet, nrows, ncols,config):
     # --- formats ---
     font_white = workbook.add_format({"font_color": "#FFFFFF"})
     font_header_bold_gray = workbook.add_format({

@@ -2,7 +2,7 @@
 # format_sheet(workbook, worksheet, nrows=len(df.index)+1, ncols=len(df.columns)+1)
 
 
-def format_sheet(workbook, worksheet, nrows, ncols):
+def format_sheet(workbook, worksheet, nrows, ncols,config):
     # --- define formats ---
     align_left_top = workbook.add_format({
         "align": "left",
