@@ -431,7 +431,7 @@ def entry_point(config={}):
         else:
             raise ValueError('report.py: unsupported output format: {fmt}'.format(fmt=config_output_format))
         
-        result_fname = ( Path(input_map_filename).parents[0] / '{basename}{ext}'.format(basename=Path(input_map_filename).name,ext='.xlsx') if Path(input_map_filename).is_file() else re.sub(r'^\s*?(.*?)\s*?$',lambda m: '{base}{added}'.format(base=m[1],added='.xlsx'),'{path}'.format(path=input_map_filename)) )
+        result_fname = ( Path(input_map_filename).parents[0] / '{basename}{ext}'.format(basename=re.sub(r'\.json\s*?$','','{n}'.format(n=Path(input_map_filename).name),flags=re.I),ext='.xlsx') if Path(input_map_filename).is_file() else re.sub(r'^\s*?(.*?)(?:\.json)?\s*?$',lambda m: '{base}{added}'.format(base=m[1],added='.xlsx'),'{path}'.format(path=input_map_filename)) )
         print('{script_name}: saving as "{fname}"'.format(fname=result_fname,script_name=script_name))
         # with open(result_fname, "w") as outfile:
         #     outfile.write(result)
