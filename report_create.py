@@ -242,25 +242,27 @@ def entry_point(config={}):
             args, args_rest = parser.parse_known_args()
         else:
             args = parser.parse_args()
-        input_map_filename = None
+        
+        print('{script_name}: script started at {dt}'.format(dt=time_start,script_name=script_name))
+
+        input_mdd_filename = None
         if args.inpfile:
-            input_map_filename = Path(args.inpfile)
-            # input_map_filename = '{input_map_filename}'.format(input_map_filename=input_map_filename.resolve())
-        # input_map_filename_specs = open(input_map_filename_specs_name, encoding="utf8")
+            input_mdd_filename = Path(args.inpfile)
+            # input_mdd_filename = '{input_mdd_filename}'.format(input_mdd_filename=input_mdd_filename.resolve())
+        # input_mdd_filename_specs = open(input_mdd_filename_specs_name, encoding="utf8")
+        input_mdd_filename = Path.resolve(input_mdd_filename)
+        #print('{script_name}: reading {fname}'.format(fname=input_mdd_filename,script_name=script_name))
+        if not(Path(input_mdd_filename).is_file()):
+            raise FileNotFoundError('file not found: {fname}'.format(fname=input_mdd_filename))
+
         config_output_format = 'excel'
         if args.output_format:
             config_output_format = args.output_format
 
-        print('{script_name}: script started at {dt}'.format(dt=time_start,script_name=script_name))
-
-        #print('{script_name}: reading {fname}'.format(fname=input_map_filename,script_name=script_name))
-        if not(Path(input_map_filename).is_file()):
-            raise FileNotFoundError('file not found: {fname}'.format(fname=input_map_filename))
-        
         inpfile_map_in_json = None
-        with open(input_map_filename, encoding="utf8") as input_map_file:
+        with open(input_mdd_filename, encoding="utf8") as input_mdd_file:
             try:
-                inpfile_map_in_json = json.load(input_map_file)
+                inpfile_map_in_json = json.load(input_mdd_file)
             except json.JSONDecodeError as e:
                 # just a more descriptive message to the end user
                 # can happen if the tool is started two times in parallel and it is writing to the same json simultaneously
@@ -277,7 +279,7 @@ def entry_point(config={}):
         else:
             raise ValueError('report.py: unsupported output format: {fmt}'.format(fmt=config_output_format))
         
-        result_fname = ( Path(input_map_filename).parents[0] / '{basename}{ext}'.format(basename=re.sub(r'\.json\s*?$','','{n}'.format(n=Path(input_map_filename).name),flags=re.I),ext='.xlsx') if Path(input_map_filename).is_file() else re.sub(r'^\s*?(.*?)(?:\.json)?\s*?$',lambda m: '{base}{added}'.format(base=m[1],added='.xlsx'),'{path}'.format(path=input_map_filename)) )
+        result_fname = ( Path(input_mdd_filename).parents[0] / '{basename}{ext}'.format(basename=re.sub(r'\.json\s*?$','','{n}'.format(n=Path(input_mdd_filename).name),flags=re.I),ext='.xlsx') if Path(input_mdd_filename).is_file() else re.sub(r'^\s*?(.*?)(?:\.json)?\s*?$',lambda m: '{base}{added}'.format(base=m[1],added='.xlsx'),'{path}'.format(path=input_mdd_filename)) )
         print('{script_name}: saving as "{fname}"'.format(fname=result_fname,script_name=script_name))
         # with open(result_fname, "w") as outfile:
         #     outfile.write(result)
