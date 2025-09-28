@@ -7,32 +7,101 @@ import re
 import json
 
 import pandas as pd
-
+import xlsxwriter
 
 
 
 if __name__ == '__main__':
     # run as a program
     import util_dataframe_wrapper
-    import format_sheet as excel_format_sheet
-    import format_sheet_overview as excel_format_sheet_overview
+    # import format_sheet as excel_openpyxl_format_sheet
+    # import format_sheet_overview as excel_openpyxl_format_sheet_overview
+    import format_sheet_xlsxwriter as excel_xlsxwriter_format_sheet
+    import format_sheet_xlsxwriter_overview as excel_xlsxwriter_format_sheet_overview
 elif '.' in __name__:
     # package
     from . import util_dataframe_wrapper
-    from . import format_sheet as excel_format_sheet
-    from . import format_sheet_overview as excel_format_sheet_overview
+    # from . import format_sheet_openpyxl as excel_openpyxl_format_sheet
+    # from . import format_sheet_openpyxl_overview as excel_openpyxl_format_sheet_overview
+    from . import format_sheet_xlsxwriter as excel_xlsxwriter_format_sheet
+    from . import format_sheet_xlsxwriter_overview as excel_xlsxwriter_format_sheet_overview
 else:
     # included with no parent package
     import util_dataframe_wrapper
-    import format_sheet as excel_format_sheet
-    import format_sheet_overview as excel_format_sheet_overview
+    # import format_sheet as excel_openpyxl_format_sheet
+    # import format_sheet_overview as excel_openpyxl_format_sheet_overview
+    import format_sheet_xlsxwriter as excel_xlsxwriter_format_sheet
+    import format_sheet_xlsxwriter_overview as excel_xlsxwriter_format_sheet_overview
 
 
 
 
 
 
-class Map:
+
+def isnonempty(o):
+    if o==0:
+        return True
+    elif o==False:
+        return True
+    else:
+        return not not o
+
+def sanitize(o):
+    if not isnonempty(o):
+        yield ('','')
+    elif isinstance(o,list):
+        for part in o:
+            yield from sanitize(part)
+    elif isinstance(o,dict):
+        def modify_as_per_flags(item,flags):
+            result = item
+            for flag in flags:
+                if (flag=='role-time') or (flag=='role-date') or (flag=='role-datetime'):
+                    result = result
+                elif flag=='role-added':
+                    if result[1]=='removed':
+                        result = (result[0],'changed')
+                    else:
+                        result = (result[0],'added')
+                elif flag=='role-removed':
+                    if result[1]=='added':
+                        result = (result[0],'changed')
+                    else:
+                        result = (result[0],'removed')
+                elif flag=='role-sronly':
+                    result = result
+                elif flag=='role-label':
+                    result = result
+            return result
+        flags = []
+        if 'flags' in o:
+            flags = o['flags']
+        if 'role' in o:
+            flags = [*flags,*['role-{f}'.format(f=f) for f in [o['role']]]]
+        # yield from sanitize(o['parts'])
+        if 'parts' in o:
+            nested = sanitize(o['parts'])
+        elif 'name' in o and 'value' in o:
+            nested = ['Name: "',o['name'],'", Value: "',o['value'],'", ']
+            nested = [p for p in sanitize(nested)]
+        elif 'text' in o:
+            nested = sanitize(o['text'])
+        else:
+            nested = sanitize('')
+        for n in nested:
+            yield modify_as_per_flags(n,flags)
+    elif isinstance(o,str):
+        o = '{o}'.format(o=o)
+        # o = sanitize_text_with_markers(...)
+        yield(o,'')
+    else:
+        yield (o,'')
+
+
+
+
+class ReportDocument:
     class CellNotFound(Exception):
         """Cell not found"""
     def __init__(self,inp={},config={}):
@@ -44,11 +113,7 @@ class Map:
         
         self.config['columns'] = [ c for c in (inp['report_scheme']['columns'] if ('columns' in inp['report_scheme']) else []) ] if 'report_scheme' in inp else []
 
-
         self.update(inp)
-
-
-
 
 
 
@@ -58,58 +123,73 @@ class Map:
             inp = {}
         config = self.config
 
+        def sanitize_wrapped(s):
+            # return [(s,'')]
+            result = sanitize(s)
+            return [r for r in result] # we need an instance of list, not generator
+
+        def df_prep(section_data):
+            data = util_dataframe_wrapper.PandasDataframeWrapper(section_data['columns'])
+            for row in section_data['data']:
+                row_formatted = [sanitize_wrapped(r) for r in row]
+                data.append(*row_formatted)
+            return data.to_df()
+        
         report_data_sections = []
 
-        report_data_sections.append(self.prep_index_section_obj(inp))
+        # add overview df
+        report_data_sections.append(self.prep_overview_section_obj(inp))
 
-        config["section_ids_used"] = []
+        # add remaining dataframes
+        # config["section_ids_used"] = []
         for section_obj in ( inp['sections'] if 'sections' in inp else [] ):
             report_data_sections.append(self.prep_section_obj_from_inp(section_obj))
 
-        self.dataframes = [ { 'name': o['name'], 'df': self.df_prep(o) } for o in report_data_sections ]
+        self.dataframes = [ { 'name': o['name'], 'df': df_prep(o) } for o in report_data_sections ]
         
         return None
     
-    def prep_index_section_obj(self,inp):
+    def prep_overview_section_obj(self,inp):
         
         def sanitize_text_extract_filename(s):
-            return re.sub(r'^.*[/\\](.*?)\s*?$',lambda m: m[1],'{sstr}'.format(sstr=s))
+            # return re.sub(r'^.*[/\\](.*?)\s*?$',lambda m: m[1],'{sstr}'.format(sstr=s))
+            return Path(s).name
 
         data_add = []
 
-        result_ins_htmlmarkup_title = '???'
-        result_ins_htmlmarkup_heading = '???'
-        result_ins_htmlmarkup_reporttype = inp['report_type'] if 'report_type' in inp else '???'
-        result_ins_htmlmarkup_headertext = '{reporttype} Report'.format(reporttype=result_ins_htmlmarkup_reporttype)
-        result_ins_htmlmarkup_banner = ''
-        if result_ins_htmlmarkup_reporttype=='MDD':
-            result_ins_htmlmarkup_title = 'MDD: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']))
-            result_ins_htmlmarkup_heading = 'MDD: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']))
-            result_ins_htmlmarkup_headertext = '' # it's too obvious, we shouldn't print unnecessary line; it says "MDD" with a very big font size in h1
-        elif result_ins_htmlmarkup_reporttype=='diff':
-            result_ins_htmlmarkup_title = 'Diff: {MDD_A} vs {MDD_B}'.format(MDD_A=sanitize_text_extract_filename(inp['source_left']),MDD_B=sanitize_text_extract_filename(inp['source_right']))
-            result_ins_htmlmarkup_heading = 'Diff'
+        result_ins_title = '???'
+        result_ins_heading = '???'
+        result_ins_reporttype = inp['report_type'] if 'report_type' in inp else '???'
+        result_ins_headertext = '{reporttype} Report'.format(reporttype=result_ins_reporttype)
+        result_ins_banner = ''
+        if result_ins_reporttype=='MDD':
+            result_ins_title = 'MDD: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']))
+            result_ins_heading = 'MDD: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']))
+            result_ins_headertext = '' # it's too obvious, we shouldn't print unnecessary line; it says "MDD" with a very big font size in h1
+        elif result_ins_reporttype=='diff':
+            result_ins_title = 'Diff: {MDD_A} vs {MDD_B}'.format(MDD_A=sanitize_text_extract_filename(inp['source_left']),MDD_B=sanitize_text_extract_filename(inp['source_right']))
+            result_ins_heading = 'Diff'
         else:
-            if( result_ins_htmlmarkup_reporttype and (len(result_ins_htmlmarkup_reporttype)>0) and not (result_ins_htmlmarkup_reporttype=='???') ):
-                result_ins_htmlmarkup_title = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=result_ins_htmlmarkup_reporttype)
-                result_ins_htmlmarkup_heading = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=result_ins_htmlmarkup_reporttype)
+            if( result_ins_reporttype and (len(result_ins_reporttype)>0) and not (result_ins_reporttype=='???') ):
+                result_ins_title = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=result_ins_reporttype)
+                result_ins_heading = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=result_ins_reporttype)
             elif len([flag for flag in ( (inp['report_scheme']['flags'] if 'flags' in inp['report_scheme'] else []) if 'report_scheme' in inp else []) if re.match(r'^\s*?data-type\s*?:',flag)])>0:
                 flags_indicating_data_type = [flag for flag in ( (inp['report_scheme']['flags'] if 'flags' in inp['report_scheme'] else []) if 'report_scheme' in inp else []) if re.match(r'^\s*?data-type\s*?:',flag)]
                 data_type_str = '/'.join([re.sub(r'^\s*?data-type\s*?:\s*?(.*?)\s*?$',lambda m: m[1],flag) for flag in flags_indicating_data_type])
-                result_ins_htmlmarkup_title = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=data_type_str)
-                result_ins_htmlmarkup_heading = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=data_type_str)
+                result_ins_title = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=data_type_str)
+                result_ins_heading = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc=data_type_str)
             else:
-                result_ins_htmlmarkup_title = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc='File')
-                result_ins_htmlmarkup_heading = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc='File')
-        result_ins_htmlmarkup_banner = []+[{'name':'datetime','value':inp['report_datetime_utc']}]+inp['source_file_metadata']
+                result_ins_title = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc='File')
+                result_ins_heading = '{report_desc}: {filepath}'.format(filepath=sanitize_text_extract_filename(inp['source_file']),report_desc='File')
+        result_ins_banner = []+[{'name':'datetime','value':inp['report_datetime_utc']}]+inp['source_file_metadata']
         
-        data_add.append(['',result_ins_htmlmarkup_heading])
+        data_add.append(['',result_ins_heading])
         
-        for o in result_ins_htmlmarkup_banner:
+        for o in result_ins_banner:
             data_add.append([o['name'],o['value']])
 
 
-        section = {
+        section_obj = {
             'columns': ['name','value'],
             'column_headers': {
                 "name": "",
@@ -122,25 +202,25 @@ class Map:
             # 'statistics': section_obj['statistics'],
             'data': data_add
         }
-        return section
+        return section_obj
 
-    def prep_section_obj_from_inp(self,section_obj):
+    def prep_section_obj_from_inp(self,section_obj_from_json):
 
         config = self.config
 
         data_add = []
-        result_column_headers = [ '{col}'.format(col=col) for col in section_obj['columns'] ] if 'columns' in section_obj else config["columns"]
-        for row in ( section_obj['content'] if section_obj['content']else [] ):
+        result_column_headers = [ '{col}'.format(col=col) for col in section_obj_from_json['columns'] ] if 'columns' in section_obj_from_json else config["columns"]
+        for row in ( section_obj_from_json['content'] if section_obj_from_json['content']else [] ):
             row_add = []
             for col in result_column_headers:
                 row_add.append( row[col] if col in row else '' )
             data_add.append(row_add)
         
-        section_title = section_obj['name']
-        # if 'title' in section_obj:
-        #     section_title = section_obj['title']
+        section_title = section_obj_from_json['name']
+        # if 'title' in section_obj_from_json:
+        #     section_title = section_obj_from_json['title']
         
-        section_id = section_obj['name']
+        section_id = section_obj_from_json['name']
         section_id = re.sub(r'([^a-zA-Z])',lambda m: '_x{d}_'.format(d=ord(m[1])),section_id,flags=re.I)
         # while True:
         #     if not (section_id in config["section_ids_used"]):
@@ -149,42 +229,116 @@ class Map:
         #     else:
         #         section_id = section_id+ '_' + str(config["section_ids_used"].index(section_id)+2)
 
-        section = {
-            **section_obj,
-            'columns': section_obj['columns'] if 'columns' in section_obj else self.config['columns'],
+        section_obj = {
+            **section_obj_from_json,
+            'columns': section_obj_from_json['columns'] if 'columns' in section_obj_from_json else self.config['columns'],
             'content': None,
-            'name': section_obj['name'],
+            'name': section_obj_from_json['name'],
             'title': section_title,
             'id': section_id,
-            # 'statistics': section_obj['statistics'],
+            # 'statistics': section_obj_from_json['statistics'],
             'data': data_add
         }
-        return section
+        return section_obj
     
-
-    def df_prep(self,section_data):
-
-        data = util_dataframe_wrapper.PandasDataframeWrapper(section_data['columns'])
-
-        for row in section_data['data']:
-            row_add = [item for item in row]
-            data.append(*row_add)
-
-        return data.to_df()
 
 
     def write_to_file(self,out_filename):
 
-        config = self.config
+        # # config = self.config
 
-        df_dataframes = self.dataframes
+        # with pd.ExcelWriter(out_filename, engine='openpyxl') as writer:
+        #     for o in self.dataframes:
+        #         o['df'].to_excel(writer, sheet_name=o['name'])
+        #         format_fn = excel_openpyxl_format_sheet.format_sheet if not(o['name']=='overview') else excel_openpyxl_format_sheet_overview.format_sheet
+        #         format_fn(writer.sheets[o['name']])
 
-        
-        with pd.ExcelWriter(out_filename, engine='openpyxl') as writer:
-            for o in self.dataframes:
-                o['df'].to_excel(writer, sheet_name=o['name'])
-                format_fn = excel_format_sheet.format_sheet if not(o['name']=='overview') else excel_format_sheet_overview.format_sheet
-                format_fn(writer.sheets[o['name']])
+        workbook = xlsxwriter.Workbook(out_filename)
+
+        def write_cell(worksheet,r,c,cell):
+            def sanitize_final(val):
+                if isinstance(val, str):
+                    # Replace carriage returns with linefeed
+                    val = val.replace("\r", "\n")
+                    # Remove other invalid control chars
+                    val = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", "", val)
+                    return val
+                else:
+                    # For numbers, bools, None → leave as is
+                    return val
+            if isinstance(cell, list):
+                # Build args for write_rich_string: [format, text, format, text, ...]
+                args = []
+                text_warning_add = '(Error: text length exeeds Excel limits of 32767 characters) '
+                allowed_text_limit = 32765 - len(text_warning_add)
+                reached_text_limit = 0
+                for text, color_id in cell:
+                    text = sanitize_final(text)
+                    color = None
+                    if not color_id or (color_id==''):
+                        color = None
+                    elif color_id=='changed':
+                        color = '#ffe49c'
+                    elif color_id=='added':
+                        color = '#6bc795'
+                    elif color_id=='removed':
+                        color = '#f59278'
+                    else:
+                        color = '#dddddd'
+                    fmt = workbook.add_format({"color": color}) if color else workbook.add_format()
+                    reached_text_limit = reached_text_limit + len(text)
+                    if reached_text_limit>allowed_text_limit:
+                        text = text[:len(text)+allowed_text_limit-reached_text_limit]
+                        if len(text)>0:
+                            args.extend([fmt, text])
+                        args.insert(0,text_warning_add)
+                        args.insert(0,workbook.add_format())
+                        break
+                    if len(text)>0:
+                        args.extend([fmt, text])
+                try:
+                    if len(args)==0:
+                        worksheet.write(r, c, '')
+                    elif len(args)>2:
+                        worksheet.write_rich_string(r, c, *args)
+                    else:
+                        worksheet.write(r, c, args[1], args[0])
+                except TypeError as e:
+                    if len(args)==0:
+                        worksheet.write(r, c, '')
+                    elif len(args)>2:
+                        worksheet.write_rich_string(r, c,[a if i%2==0 else '{t}'.format(t=a) for i,a in enumerate(args)])
+                    else:
+                        worksheet.write(r, c, '{t}'.format(t=args[1]), args[0])
+            else:
+                cell = sanitize_final(cell)
+                try:
+                    worksheet.write(r, c, cell)
+                except TypeError as e:
+                    worksheet.write(r, c, '{t}'.format(t=cell))
+
+        for o in self.dataframes:
+            worksheet = workbook.add_worksheet(o['name'])
+
+            df = o['df']
+
+            write_cell(worksheet, 0, 0, df.index.name or "")
+            for c, col_name in enumerate(df.columns):
+                write_cell(worksheet,0, c + 1, col_name)
+            for r, idx in enumerate(df.index):
+                write_cell(worksheet,r + 1, 0, idx)  # +1 because row 0 is for headers
+
+            for r, row in enumerate(df.itertuples(index=False)):
+                for c, cell in enumerate(row):
+                    write_cell(worksheet,r+1,c+1,cell)
+                    
+            # format_fn = excel_openpyxl_format_sheet.format_sheet if not(o['name']=='overview') else excel_openpyxl_format_sheet_overview.format_sheet
+            # format_fn(worksheet)
+            format_fn = excel_xlsxwriter_format_sheet.format_sheet if not(o['name']=='overview') else excel_xlsxwriter_format_sheet_overview.format_sheet
+            format_fn(workbook, worksheet, nrows=len(df.index)+1, ncols=len(df.columns)+1)
+
+        workbook.close()
+
 
 
     # @staticmethod
@@ -271,7 +425,7 @@ def entry_point(config={}):
 
     result = None
     if config_output_format=='excel':
-        result = Map(inpfile_map_in_json)
+        result = ReportDocument(inpfile_map_in_json)
     else:
         raise ValueError('report.py: unsupported output format: {fmt}'.format(fmt=config_output_format))
     
