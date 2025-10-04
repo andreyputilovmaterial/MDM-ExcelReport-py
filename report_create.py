@@ -19,7 +19,6 @@ if __name__ == '__main__':
     # import format_sheet as excel_openpyxl_format_sheet
     # import format_sheet_overview as excel_openpyxl_format_sheet_overview
     import format_sheet_xlsxwriter as excel_xlsxwriter_format_sheet
-    import format_sheet_xlsxwriter_overview as excel_xlsxwriter_format_sheet_overview
 elif '.' in __name__:
     # package
     from . import util_format_mddread_inputs
@@ -27,7 +26,6 @@ elif '.' in __name__:
     # from . import format_sheet_openpyxl as excel_openpyxl_format_sheet
     # from . import format_sheet_openpyxl_overview as excel_openpyxl_format_sheet_overview
     from . import format_sheet_xlsxwriter as excel_xlsxwriter_format_sheet
-    from . import format_sheet_xlsxwriter_overview as excel_xlsxwriter_format_sheet_overview
 else:
     # included with no parent package
     import util_format_mddread_inputs
@@ -35,7 +33,6 @@ else:
     # import format_sheet as excel_openpyxl_format_sheet
     # import format_sheet_overview as excel_openpyxl_format_sheet_overview
     import format_sheet_xlsxwriter as excel_xlsxwriter_format_sheet
-    import format_sheet_xlsxwriter_overview as excel_xlsxwriter_format_sheet_overview
 
 
 
@@ -63,12 +60,12 @@ class ReportDocument:
 
         self.dataframes = util_format_mddread_inputs.prep_dataframes(inp,self.config)
 
-        def call_plugin_on_df(df):
+        def call_plugin_on_df(dataframe_wrapper):
             for plugin in plugins.plugins:
                 if plugin['active'] and plugin['should_run'](self.config):
                     if 'on_dataframe' in plugin:
-                        df['df'] = plugin['on_dataframe'](df['df'],df['name'],self.config)
-            return df
+                        dataframe_wrapper['df'] = plugin['on_dataframe'](dataframe_wrapper['df'], sheet_name=dataframe_wrapper['name'], columns=[dataframe_wrapper['df'].index.name,*dataframe_wrapper['df'].columns], config=self.config)
+            return dataframe_wrapper
         self.dataframes = [
             call_plugin_on_df(df) for df in self.dataframes
         ]
@@ -166,12 +163,13 @@ class ReportDocument:
                     
             # format_fn = excel_openpyxl_format_sheet.format_sheet if not(o['name']=='overview') else excel_openpyxl_format_sheet_overview.format_sheet
             # format_fn(worksheet)
-            format_fn = excel_xlsxwriter_format_sheet.format_sheet if not(o['name']=='overview') else excel_xlsxwriter_format_sheet_overview.format_sheet
-            format_fn(workbook, worksheet, nrows=len(df.index)+1, ncols=len(df.columns)+1, config=self.config)
+            # format_fn = excel_xlsxwriter_format_sheet.format_sheet if not(o['name']=='overview') else excel_xlsxwriter_format_sheet_overview.format_sheet
+            format_fn = excel_xlsxwriter_format_sheet.format_sheet
+            format_fn(workbook, worksheet, nrows=len(df.index)+1, ncols=len(df.columns)+1, sheet_name=o['name'], columns=[df.index.name,*df.columns], config=self.config)
             for plugin in plugins.plugins:
                 if plugin['active'] and plugin['should_run'](self.config):
                     if 'on_format_sheet' in plugin:
-                        plugin['on_format_sheet'](workbook, worksheet, nrows=len(df.index)+1, ncols=len(df.columns)+1, name=o['name'], config=self.config)
+                        plugin['on_format_sheet'](workbook, worksheet, nrows=len(df.index)+1, ncols=len(df.columns)+1, sheet_name=o['name'], columns=[df.index.name,*df.columns], config=self.config)
 
         workbook.close()
 
