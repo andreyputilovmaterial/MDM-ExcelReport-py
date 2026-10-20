@@ -44,6 +44,12 @@ else:
 
 
 
+# STDOUT_COLOR_RED = "\033[91m"
+STDOUT_COLOR_RED = "\033[31m"
+STDOUT_COLOR_RESET = "\033[0m"
+STDOUT_COLOR_GREEN = "\033[32m"
+
+
 class ReportDocument:
     class CellNotFound(Exception):
         """Cell not found"""
@@ -207,7 +213,7 @@ class ReportDocument:
 
 
 
-def entry_point(config={}):
+def entry_point(*argcs,**kwargs):
     try:
         time_start = datetime.now()
         script_name = 'mdmtoolsap excel report script'
@@ -234,12 +240,12 @@ def entry_point(config={}):
             type=str,
             required=False
         )
-        args = None
-        args_rest = None
-        if( ('arglist_strict' in config) and (not config['arglist_strict']) ):
-            args, args_rest = parser.parse_known_args()
-        else:
-            args = parser.parse_args()
+        # args = None
+        # args_rest = None
+        # if( ('arglist_strict' in config) and (not config['arglist_strict']) ):
+        #     args, args_rest = parser.parse_known_args()
+        # else:
+        args = parser.parse_args(*argcs,**kwargs)
         
         print('{script_name}: script started at {dt}'.format(dt=time_start,script_name=script_name))
 
@@ -278,7 +284,7 @@ def entry_point(config={}):
             raise ValueError('report.py: unsupported output format: {fmt}'.format(fmt=config_output_format))
         
         result_fname = ( Path(input_mdd_filename).parents[0] / '{basename}{ext}'.format(basename=re.sub(r'\.json\s*?$','','{n}'.format(n=Path(input_mdd_filename).name),flags=re.I),ext='.xlsx') if Path(input_mdd_filename).is_file() else re.sub(r'^\s*?(.*?)(?:\.json)?\s*?$',lambda m: '{base}{added}'.format(base=m[1],added='.xlsx'),'{path}'.format(path=input_mdd_filename)) )
-        print('{script_name}: saving as "{fname}"'.format(fname=result_fname,script_name=script_name))
+        print(f'{script_name}: {STDOUT_COLOR_GREEN}saving as "{result_fname}"{STDOUT_COLOR_RESET}')
         # with open(result_fname, "w") as outfile:
         #     outfile.write(result)
         if not not result:
@@ -304,12 +310,12 @@ def entry_point(config={}):
         print('',file=sys.stderr)
         print('',file=sys.stderr)
         print('',file=sys.stderr)
-        print('Error:',file=sys.stderr)
+        print(f'{STDOUT_COLOR_RED}Error:{STDOUT_COLOR_RESET}',file=sys.stderr)
         print('',file=sys.stderr)
-        print('{e}'.format(e=e),file=sys.stderr)
+        print(f'{STDOUT_COLOR_RED}{e}{STDOUT_COLOR_RESET}',file=sys.stderr)
         print('',file=sys.stderr)
         exit(1)
 
 
 if __name__ == '__main__':
-    entry_point({'arglist_strict':True})
+    entry_point()
