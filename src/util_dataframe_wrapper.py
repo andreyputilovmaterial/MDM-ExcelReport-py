@@ -10,9 +10,6 @@ in one operation.
 import pandas as pd
 
 
-from openpyxl.utils import get_column_letter as openpyxl_get_column_letter
-
-
 # AP 9/21/2025 copied from AA-revival
 
 
@@ -55,8 +52,4 @@ class PandasDataframeWrapper:
     
     def get_index(self):
         return self._columns[0] if len(self._columns)>0 else None
-
-    def get_column_letter(self,name):
-        index = self._columns.index(name)
-        return openpyxl_get_column_letter(index+1)
 

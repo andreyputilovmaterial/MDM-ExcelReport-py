@@ -23,7 +23,6 @@ readers in the global project.
 | `src/util_dataframe_wrapper.py` | Fast append-friendly wrapper around a pandas DataFrame. |
 | `src/plugins.py` | "Backend" (Python) plugin hooks (currently one translation-overlay prep plugin). |
 | `src/format_sheet_xlsxwriter.py` | Applies column widths / row formatting via xlsxwriter. |
-| `src/format_sheet_openpyxl.py` / `_overview.py` | Legacy/unused openpyxl formatters. |
 
 ## 3. Input JSON format
 

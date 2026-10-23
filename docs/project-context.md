@@ -30,13 +30,10 @@ and is used by the broader tool set (e.g. translation-overlay workflows).
 | `src/util_dataframe_wrapper.py` | Fast append-friendly pandas DataFrame wrapper. |
 | `src/plugins.py` | "Backend" (Python) plugin hooks. |
 | `src/format_sheet_xlsxwriter.py` | xlsxwriter formatting. |
-| `src/format_sheet_openpyxl.py` / `_overview.py` | Legacy/unused openpyxl formatters. |
 
 ## 4. Design decisions
 
 - **Excel is written via `xlsxwriter`** (rich-text support for diff coloring).
-- **`openpyxl` is still imported** in `util_dataframe_wrapper.py` for
-  `get_column_letter`; the `format_sheet_openpyxl*.py` formatters are unused legacy.
 - **No JS plugins** — an Excel file has no JS runtime, so the frontend interactivity of
   `mdmreportpy` is intentionally absent. A "backend" plugin concept exists only as a
   thin hook in `plugins.py` and should be extended carefully.
@@ -51,8 +48,11 @@ and is used by the broader tool set (e.g. translation-overlay workflows).
   colors (red errors, green "saving"/"finished") with `mdmreportpy`.
 - Added `src/launcher.py`, cline rules, docs and `requirements.txt`.
 - Fixed the mutable `inp={}` / `config={}` defaults in `ReportDocument.__init__`.
-- Clarified dependencies: `pandas`, `xlsxwriter`, `openpyxl` (unpinned); removed the
-  unused `numpy` import from `plugins.py`.
+- Clarified dependencies: `pandas`, `xlsxwriter` (unpinned); removed the unused `numpy`
+  import from `plugins.py`.
+- Dropped `openpyxl` entirely: removed the dead `get_column_letter` helper and the
+  unused `format_sheet_openpyxl*.py` formatters (xlsxwriter's `write_rich_string`
+  already covers the diff coloring).
 - Added `worksheet.freeze_panes(1, 1)` so the header row and first column stay visible.
 - Declined pinliner/`build.bat` for this submodule for now (keep pinliner only where it
   already exists).
@@ -63,6 +63,5 @@ See `docs/roadmap.md`.
 
 ## 7. Open questions
 
-- Keep or remove the unused `format_sheet_openpyxl*.py` formatters.
 - Whether the "backend" plugin hook in `plugins.py` should grow into a real plugin
   system.
