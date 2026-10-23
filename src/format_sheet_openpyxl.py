@@ -1,3 +1,7 @@
+"""Legacy/unused openpyxl formatter (kept for reference; the active path is xlsxwriter).
+"""
+
+
 from openpyxl.styles import Font, Border, Alignment # , PatternFill
 def format_sheet(sheet):
     alignment_left_top = Alignment(indent=0,horizontal='left',vertical='top')

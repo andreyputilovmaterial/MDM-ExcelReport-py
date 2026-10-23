@@ -1,3 +1,13 @@
+"""Render the JSON "report" format to an Excel workbook (``.xlsx``).
+
+This is the Excel sibling of ``mdmreportpy`` (which renders to HTML). It consumes the
+same common JSON shape, flattens each section into a pandas DataFrame, and writes the
+DataFrames to a multi-sheet ``.xlsx`` file.
+
+See `docs/architecture.md` and `docs/project-context.md`.
+"""
+
+
 # import os, time, re, sys
 import traceback, sys # for pretty-printing any issues that happened during runtime; if we hit FileNotFound I don't appreciate when a log traceback is shown, the error should be simple and clear
 from datetime import datetime
@@ -51,9 +61,27 @@ STDOUT_COLOR_GREEN = "\033[32m"
 
 
 class ReportDocument:
+    """Load a JSON report, prepare its sections as DataFrames, and write them to Excel.
+
+    Usage:
+        1. ``doc = ReportDocument(inp, config)`` to prepare the DataFrames.
+        2. ``doc.write_to_file(path)`` to write them to an ``.xlsx`` workbook.
+    """
+
     class CellNotFound(Exception):
         """Cell not found"""
-    def __init__(self,inp={},config={}):
+
+    def __init__(self,inp=None,config=None):
+        """Prepare one DataFrame per report section (plus an overview sheet).
+
+        Args:
+            inp: The parsed JSON report (with ``report_scheme`` and ``sections``).
+            config: Optional runtime options (e.g. ``flags``); may be mutated.
+        """
+        if inp is None:
+            inp = {}
+        if config is None:
+            config = {}
 
         self.config = config
 
@@ -79,6 +107,7 @@ class ReportDocument:
 
 
     def write_to_file(self,out_filename):
+        """Write the prepared DataFrames to an ``.xlsx`` workbook at ``out_filename``."""
 
         # # config = self.config
 
@@ -247,7 +276,7 @@ def entry_point(*argcs,**kwargs):
         # else:
         args = parser.parse_args(*argcs,**kwargs)
         
-        print('{script_name}: script started at {dt}'.format(dt=time_start,script_name=script_name))
+        print(f'{script_name}: script started at {time_start}')
 
         input_mdd_filename = None
         if args.inpfile:
@@ -293,7 +322,7 @@ def entry_point(*argcs,**kwargs):
             raise Exception('Error: inp file was not opened and loaded, something was wrong')
 
         time_finish = datetime.now()
-        print('{script_name}: finished at {dt} (elapsed {duration})'.format(dt=time_finish,duration=time_finish-time_start,script_name=script_name))
+        print(f'{script_name}: {STDOUT_COLOR_GREEN}finished at {time_finish} (elapsed {time_finish-time_start}){STDOUT_COLOR_RESET}')
 
     except Exception as e:
         # for pretty-printing any issues that happened during runtime; if we hit FileNotFound I don't appreciate when a log traceback is shown, the error should be simple and clear

@@ -1,3 +1,10 @@
+"""Convert the common JSON "report" shape into per-section rows for the Excel report.
+
+Includes a ``sanitize`` helper that flattens nested cell values (lists, dicts, parts,
+roles) into the text/color pairs used when writing cells.
+"""
+
+
 
 from pathlib import Path # to format file name on overview sheet
 import re
@@ -26,6 +33,7 @@ def isnonempty(o):
         return not not o
 
 def sanitize(o):
+    """Yield ``(text, role)`` tuples by flattening a report cell value."""
     if not isnonempty(o):
         yield ('','')
     elif isinstance(o,list):
@@ -90,6 +98,7 @@ def sanitize(o):
 
 
 def prep_dataframes(inp,config):
+    """Return ``{name, df}`` entries: an overview sheet plus one per report section."""
     def sanitize_wrapped(s):
         # return [(s,'')]
         result = sanitize(s)

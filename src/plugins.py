@@ -1,3 +1,10 @@
+"""Backend (Python) plugin hooks that transform the report before/while it is written.
+
+An Excel file has no JS runtime, so there are no frontend plugins; these hooks are the
+closest equivalent to the `mdmreportpy` plugin system and should be kept minimal.
+"""
+
+
 
 import numpy as np, pandas as pd
 
@@ -5,6 +12,7 @@ import numpy as np, pandas as pd
 
 
 def plugin__prep_excel_for_translation_util__on_dataframe(df,sheet_name,columns,config):
+    """Placeholder DataFrame hook for the translation-overlay preparation plugin."""
     
     return df
 
@@ -37,6 +45,7 @@ def plugin__prep_excel_for_translation_util__on_dataframe(df,sheet_name,columns,
     # return df
 
 def plugin__prep_excel_for_translation_util__on_format_sheet(workbook, worksheet, nrows, ncols, sheet_name, columns, config):
+    """Placeholder sheet-formatting hook for the translation-overlay preparation plugin."""
 
     return workbook
 

@@ -19,7 +19,7 @@ import block instead of a single import style:
 
 ```python
 if __name__ == '__main__':
-    # run as a program, e.g. `python src/entry_point.py`
+    # run as a program, e.g. `python src/report_create.py`
     from sibling_module import some_function
 elif '.' in __name__:
     # imported as a package member
@@ -31,54 +31,28 @@ else:
 
 The module and function names above are illustrative — replace them with the real
 sibling module of your entry point. In this repo the scripts that follow this pattern
-are `src/launcher.py` and `src/read_mdd.py`. Any script that is meant to be launched
-directly should use this pattern; every other module (the ones that are only ever
-imported) uses plain relative imports.
+are `src/launcher.py` and `src/report_create.py`. Any script that is meant to be
+launched directly should use this pattern; every other module (the ones that are only
+ever imported) uses plain relative imports.
 
 ## Static assets and the `GENERATED` folder
 
 The default distributable is a single-file bundle produced with `pinliner`, which can
-only embed Python modules. A plain static file (an HTML/CSS/JS template, a version
-string, or anything that is not a python module, etc.) cannot be used as-is in that bundle, so:
+only embed Python modules. A plain static file (a version string, an HTML/CSS/JS
+template, or anything that is not a python module) cannot be used as-is in that bundle,
+so:
 
 1. **Static assets are discouraged.** It is easier to avoid them than to solve their
    embedding into the pinliner bundle.
-2. **When a static asset is necessary — or clearly beneficial (faster development, more
-   modular and easier to maintain) — it is allowed, but only via this technique:** the
-   build script converts the asset into a Python module written to a `GENERATED`
-   subfolder, which the real source code then imports like any other module.
+2. **When a static asset is necessary — or clearly beneficial — it is allowed, but only
+   via this technique:** the build script converts the asset into a Python module
+   written to a `GENERATED` subfolder, which the real source code then imports like any
+   other module.
 
-This is a slightly circular workflow: the build script *generates* code that the real
-source modules import. Not entirely clean, but it solves the pinliner bundling problem.
-
-Existing example in this repo:
-
-- `build.bat` runs `git describe --tags --dirty` (a non-Python "static asset") and
-  writes the result into `src/GENERATED/_VERSION.py` as the `_VERSION` variable, which
-  `src/launcher.py` and `src/read_mdd.py` import.
-
-### Embedding larger static assets (illustrative)
-
-The same technique scales to larger static assets such as HTML/CSS/JS templates. The
-concrete files below are for illustration only — a report generator would implement it
-like this:
-
-- **Development time:** a `*_html_template.py` module loads the files under a
-  `src/templates/` directory with `importlib.resources` and minifies them in memory.
-- **Build time:** a `build_compiled_template.py` script imports the source package, then
-  writes the assembled strings as literals into `src/GENERATED/TEMPLATE.py`.
-- **Runtime inside the pinliner bundle:** the module that needs the templates first
-  tries to import the source `*_html_template` module; when that fails (a bundle has no
-  filesystem resource files) it falls back to
-  `from GENERATED import TEMPLATE as html_template`.
-
-(The vendored `mdmreportpy` submodule under `src/lib/mdmreportpy/` is a concrete
-instance of this pattern in this repo.)
-
-Note: `importlib.resources` references such as `resources.files("src.templates")` and
-build-time imports such as `from src import ...` hardcode the package name (`src` in
-this repo). That is part of the technique, but it means the subtree is not relocatable
-under a different package name without updating those references.
+This repo currently has **no static assets**: it produces Excel workbooks from plain
+Python, so there is nothing to embed. The technique above is kept here for consistency
+with the sibling packages (e.g. `mdmreportpy` embeds its HTML/CSS/JS templates this
+way, and the other packages embed their git version string via `src/GENERATED/_VERSION.py`).
 
 ## When inspecting source code
 
@@ -89,3 +63,4 @@ Any code under a `GENERATED` folder is **generated output, not maintained source
 - It is **not tracked in git** (`.gitignore` excludes `**/GENERATED/`).
 - Do not edit it by hand; change the original asset or the build script that produces it
   instead.
+

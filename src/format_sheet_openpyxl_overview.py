@@ -1,3 +1,7 @@
+"""Legacy/unused openpyxl formatter for the "overview" sheet (kept for reference).
+"""
+
+
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.formatting.rule import FormulaRule
 def format_sheet(sheet):

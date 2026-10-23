@@ -1,8 +1,13 @@
+"""Apply xlsxwriter formatting (column widths, row heights, alignment) to worksheets.
+"""
+
+
 # how to use:
 # format_sheet(workbook, worksheet, nrows=len(df.index)+1, ncols=len(df.columns)+1)
 
 
 def format_sheet(workbook, worksheet, nrows, ncols, sheet_name, columns, config):
+    """Apply column widths, row heights and alignment for a data sheet."""
 
     if sheet_name=='overview':
         return format_sheet_overview(workbook, worksheet, nrows, ncols, sheet_name, columns, config)
@@ -32,6 +37,7 @@ def format_sheet(workbook, worksheet, nrows, ncols, sheet_name, columns, config)
 
 
 def format_sheet_overview(workbook, worksheet, nrows, ncols, sheet_name, columns, config):
+    """Apply formatting for the "overview" sheet."""
     font_white = workbook.add_format({"font_color": "#FFFFFF"})
     font_header_bold_gray = workbook.add_format({
         "font_color": "#666666",

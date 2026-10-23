@@ -1,3 +1,11 @@
+"""Fast append-friendly wrapper around a pandas DataFrame.
+
+Appending to a plain pandas DataFrame is slow (it copies and re-checks indexes every
+time); this wrapper accumulates rows in plain Python lists and converts to a DataFrame
+in one operation.
+"""
+
+
 
 import pandas as pd
 
@@ -18,7 +26,9 @@ from openpyxl.utils import get_column_letter as openpyxl_get_column_letter
 
 
 class PandasDataframeWrapper:
+    """Accumulate rows in Python lists and convert them to a pandas DataFrame."""
     def __init__(self,columns):
+        """Initialize the wrapper with the list of column names."""
         self._columns = columns
         self._df = pd.DataFrame(
             data =  { col[0]: col[1] for col in zip(self._columns,[[]]*len(self._columns)) },
@@ -28,6 +38,7 @@ class PandasDataframeWrapper:
         # self._row = 2
 
     def append(self,*seq):
+        """Append one row (one value per column)."""
         row_add = {col[0]: col[1] for col in zip(self._columns,seq)}
         self._data.append(row_add)
     
@@ -35,6 +46,7 @@ class PandasDataframeWrapper:
         return len(self._data) + 2
 
     def to_df(self):
+        """Return the accumulated rows as a pandas DataFrame (index set when available)."""
         self._df = pd.concat([self._df,pd.DataFrame(self._data)],ignore_index=True)
         index = self.get_index()
         if index:
