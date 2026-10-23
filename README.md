@@ -17,8 +17,8 @@ Input JSON is produced by the same readers and the diff tool that feed `mdmrepor
 ## Requirements
 
 - Python 3.
-- `pandas`, `xlsxwriter`, `openpyxl` (the exact dependency set is still being clarified
-  — see `docs/roadmap.md`).
+- `pandas`, `xlsxwriter`, `openpyxl` (see `requirements.txt`; versions are intentionally
+  unpinned).
 
 ## Usage
 

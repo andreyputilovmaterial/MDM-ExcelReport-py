@@ -51,6 +51,11 @@ and is used by the broader tool set (e.g. translation-overlay workflows).
   colors (red errors, green "saving"/"finished") with `mdmreportpy`.
 - Added `src/launcher.py`, cline rules, docs and `requirements.txt`.
 - Fixed the mutable `inp={}` / `config={}` defaults in `ReportDocument.__init__`.
+- Clarified dependencies: `pandas`, `xlsxwriter`, `openpyxl` (unpinned); removed the
+  unused `numpy` import from `plugins.py`.
+- Added `worksheet.freeze_panes(1, 1)` so the header row and first column stay visible.
+- Declined pinliner/`build.bat` for this submodule for now (keep pinliner only where it
+  already exists).
 
 ## 6. Roadmap
 
@@ -58,6 +63,6 @@ See `docs/roadmap.md`.
 
 ## 7. Open questions
 
-- Exact dependency set: `xlsxwriter`, `openpyxl`, or both?
-- Freeze the first row (header) and first column (row names) in the output workbook.
 - Keep or remove the unused `format_sheet_openpyxl*.py` formatters.
+- Whether the "backend" plugin hook in `plugins.py` should grow into a real plugin
+  system.

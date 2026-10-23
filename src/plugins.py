@@ -6,7 +6,8 @@ closest equivalent to the `mdmreportpy` plugin system and should be kept minimal
 
 
 
-import numpy as np, pandas as pd
+# NOTE: no numpy/pandas imports are needed yet — the plugin hooks are placeholders.
+# If a future plugin implementation needs them, add the imports back here.
 
 
 

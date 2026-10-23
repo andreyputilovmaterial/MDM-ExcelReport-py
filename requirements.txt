@@ -1,5 +1,10 @@
 # Runtime dependencies (pip-installable packages), one per line.
 # Install with:  pip install -r requirements.txt
 #
-# Dependency set is not yet finalized (see docs/roadmap.md). The code currently imports
-# pandas, xlsxwriter and openpyxl.
+# Versions are intentionally not pinned: this code should work across a wide range of
+# environments.
+
+pandas
+xlsxwriter
+openpyxl
+

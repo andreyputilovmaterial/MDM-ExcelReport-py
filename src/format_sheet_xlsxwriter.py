@@ -35,6 +35,9 @@ def format_sheet(workbook, worksheet, nrows, ncols, sheet_name, columns, config)
     if 'update' in columns:
         worksheet.set_column([*columns].index('update'), [*columns].index('update'), 4)
 
+    # Freeze the header row and the first (row-name) column so they stay visible.
+    worksheet.freeze_panes(1, 1)
+
 
 def format_sheet_overview(workbook, worksheet, nrows, ncols, sheet_name, columns, config):
     """Apply formatting for the "overview" sheet."""
@@ -73,3 +76,6 @@ def format_sheet_overview(workbook, worksheet, nrows, ncols, sheet_name, columns
     # If you already wrote values, you can reapply format via conditional_format on all headers
     worksheet.conditional_format(0, 0, 0, ncols-1, {"type": "no_errors", "format": font_white})  # row 1
     worksheet.conditional_format(1, 1, 1, 1, {"type": "no_errors", "format": font_header_bold_gray}) # B2
+
+    # Freeze the header row and the first (name) column so they stay visible.
+    worksheet.freeze_panes(1, 1)
