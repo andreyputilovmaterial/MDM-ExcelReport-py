@@ -26,9 +26,11 @@ readers in the global project.
 
 ## 3. Input JSON format
 
-Same common shape as `mdmreportpy` (see its `docs/architecture.md`). Sections map to
-worksheets: one sheet per section, plus an "overview" sheet built from `report_type`,
-`source_file`, timestamps and `source_file_metadata`.
+Same common shape as `mdmreportpy`, whose spec is the source of truth:
+`docs/report-json-format.md` (report JSON) and `docs/rich-text-format.md` (rich text).
+This page only notes the Excel-specific handling. Sections map to worksheets: one sheet
+per section, plus an "overview" sheet built from `report_type`, `source_file`,
+timestamps and `source_file_metadata`.
 
 `column_headers` values are not currently consumed for sheet titles: Excel writes the
 raw column ids as column names. **Decision (2026-11-02):** rich-text `column_headers`

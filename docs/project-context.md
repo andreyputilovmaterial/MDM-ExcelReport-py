@@ -46,6 +46,9 @@ and is used by the broader tool set (e.g. translation-overlay workflows).
   `column_headers` values to be rich text (`parts`/`role`) like cell values. Excel
   currently ignores `column_headers` (it writes raw column ids); supporting rich-text
   headers here is recorded as a to-do.
+- **Source of truth for the data format is `mdmreportpy`.** Its
+  `docs/report-json-format.md` and `docs/rich-text-format.md` are the master definition
+  of the report JSON shape and the rich-text format; this package defers to them.
 
 ## 5. Findings / changes (2026-10-23)
 

@@ -68,4 +68,7 @@ pattern. For example, the translation-overlay helper (the sibling
 
 - [Architecture & input JSON format](docs/architecture.md) — stable reference.
 - [Roadmap / TODOs](docs/roadmap.md) — upcoming work.
+- **Data format source of truth** — the report JSON format and the rich-text format are
+  defined in `mdmreportpy` (its `docs/report-json-format.md` and
+  `docs/rich-text-format.md`); this package defers to those as the master definition.
 
