@@ -1,7 +1,9 @@
 # Project Context — MDM-ExcelReport-py (`mdmexcelreportpy`)
 
-> Last updated: 2026-10-23
+> Last updated: 2026-11-02
 > Status: initial capture.
+> (2026-11-02) Recorded decision: rich-text (`parts`/`role`) `column_headers` are
+> supported in the common JSON shape; Excel support is a to-do (see `roadmap.md`).
 >
 > **Convention:** read this file at the start of every task and update it at the end,
 > so it stays the permanently updated context of the current work (see
@@ -40,6 +42,10 @@ and is used by the broader tool set (e.g. translation-overlay workflows).
 - **Excel is both worse and better than HTML.** Worse for filtering/copying (properties
   and diff are inline within cells); better for a wider tool ecosystem (e.g.
   translation-overlay helper).
+- **Rich-text column headers (decision).** The common JSON shape now allows
+  `column_headers` values to be rich text (`parts`/`role`) like cell values. Excel
+  currently ignores `column_headers` (it writes raw column ids); supporting rich-text
+  headers here is recorded as a to-do.
 
 ## 5. Findings / changes (2026-10-23)
 

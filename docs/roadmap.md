@@ -15,4 +15,7 @@ Tasks listed here are not necessarily ordered by priority.
   hook or grow into a real plugin system.
 - Add automated tests (none exist yet).
 - Test against real MDD/diff JSON output and capture findings back here.
+- Support `column_headers` (currently ignored — Excel writes raw column ids). When
+  implemented, accept the rich-text (`parts`/`role`) header format that the common JSON
+  shape now supports and render parts by role.
 

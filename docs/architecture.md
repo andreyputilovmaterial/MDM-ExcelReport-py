@@ -30,6 +30,11 @@ Same common shape as `mdmreportpy` (see its `docs/architecture.md`). Sections ma
 worksheets: one sheet per section, plus an "overview" sheet built from `report_type`,
 `source_file`, timestamps and `source_file_metadata`.
 
+`column_headers` values are not currently consumed for sheet titles: Excel writes the
+raw column ids as column names. **Decision (2026-11-02):** rich-text `column_headers`
+(`parts`/`role`) is a supported format in the common JSON shape; supporting it here
+(and surfacing human-readable headers at all) is a to-do (see `docs/roadmap.md`).
+
 ## 4. Excel vs HTML
 
 No JS plugins are possible (an Excel file has no JS runtime), so the frontend
