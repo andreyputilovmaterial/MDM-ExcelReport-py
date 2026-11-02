@@ -111,6 +111,21 @@ class TestSanitizeHeader(unittest.TestCase):
         value = {'parts': [{'text': 'A'}, {'text': 'B', 'role': 'added'}]}
         self.assertEqual(list(uf.sanitize(value)), [('A', ''), ('B', 'added')])
 
+    def test_segment_text(self):
+        self.assertEqual(list(uf.sanitize({'text': 'Item name'})), [('Item name', '')])
+
+    def test_segment_text_with_role(self):
+        self.assertEqual(list(uf.sanitize({'text': 'x', 'role': 'added'})), [('x', 'added')])
+
+    def test_list_of_segments(self):
+        value = [{'text': 'A'}, {'text': 'B', 'role': 'removed'}]
+        self.assertEqual(list(uf.sanitize(value)), [('A', ''), ('B', 'removed')])
+
+    def test_parts_wrapper_with_context_and_suffix(self):
+        # Exact shape the diff tool emits for a side-by-side column header.
+        value = {'parts': [{'role': 'context', 'text': 'Item name'}, {'text': ' (Left file)'}]}
+        self.assertEqual(list(uf.sanitize(value)), [('Item name', ''), (' (Left file)', '')])
+
 
 if __name__ == '__main__':
     unittest.main()
