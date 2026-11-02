@@ -1,6 +1,10 @@
 # Project Context — MDM-ExcelReport-py (`mdmexcelreportpy`)
 
-> Last updated: 2026-11-02
+> Last updated: 2026-11-03
+> (2026-11-03) Launcher smoke test: added a dependency-free ``--program done`` (prints
+> ``done`` in green) to ``src/launcher.py`` plus ``tests/test_done_program.py``.
+> ``report_create`` (and therefore pandas/xlsxwriter) is now imported lazily via
+> ``_import_module`` so ``done`` loads without any optional dependencies.
 > (2026-11-02) Packaging/docs: `requirements.txt` already lists `pandas`/`xlsxwriter`;
 > documented the three launch strategies in `README.md`. No `build.bat`/`run_init` yet
 > (pinliner bundling is still declined for this submodule — see §5).
