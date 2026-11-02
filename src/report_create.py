@@ -264,6 +264,12 @@ def entry_point(*argcs,**kwargs):
             required=False
         )
         parser.add_argument(
+            '--output-filename',
+            help='Set preferred output file name, with path',
+            type=str,
+            required=False
+        )
+        parser.add_argument(
             '--flags',
             help='(Optional) set of flags (comma-delimited) to control program behavior)',
             type=str,
@@ -312,8 +318,11 @@ def entry_point(*argcs,**kwargs):
         else:
             raise ValueError('report.py: unsupported output format: {fmt}'.format(fmt=config_output_format))
         
-        result_fname = ( Path(input_mdd_filename).parents[0] / '{basename}{ext}'.format(basename=re.sub(r'\.json\s*?$','','{n}'.format(n=Path(input_mdd_filename).name),flags=re.I),ext='.xlsx') if Path(input_mdd_filename).is_file() else re.sub(r'^\s*?(.*?)(?:\.json)?\s*?$',lambda m: '{base}{added}'.format(base=m[1],added='.xlsx'),'{path}'.format(path=input_mdd_filename)) )
-        print(f'{script_name}: {STDOUT_COLOR_GREEN}saving as "{result_fname}"{STDOUT_COLOR_RESET}')
+        if args.output_filename:
+            result_fname = Path(args.output_filename)
+        else:
+            result_fname = ( Path(input_mdd_filename).parents[0] / '{basename}{ext}'.format(basename=re.sub(r'\.json\s*?$','','{n}'.format(n=Path(input_mdd_filename).name),flags=re.I),ext='.xlsx') if Path(input_mdd_filename).is_file() else re.sub(r'^\s*?(.*?)(?:\.json)?\s*?$',lambda m: '{base}{added}'.format(base=m[1],added='.xlsx'),'{path}'.format(path=input_mdd_filename)) )
+        print(f'{script_name}: saving as {STDOUT_COLOR_GREEN}"{result_fname}"{STDOUT_COLOR_RESET}')
         # with open(result_fname, "w") as outfile:
         #     outfile.write(result)
         if not not result:
@@ -322,7 +331,7 @@ def entry_point(*argcs,**kwargs):
             raise Exception('Error: inp file was not opened and loaded, something was wrong')
 
         time_finish = datetime.now()
-        print(f'{script_name}: {STDOUT_COLOR_GREEN}finished at {time_finish} (elapsed {time_finish-time_start}){STDOUT_COLOR_RESET}')
+        print(f'{script_name}: finished at {time_finish} (elapsed {time_finish-time_start})')
 
     except Exception as e:
         # for pretty-printing any issues that happened during runtime; if we hit FileNotFound I don't appreciate when a log traceback is shown, the error should be simple and clear

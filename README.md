@@ -36,6 +36,9 @@ python src/launcher.py --program report_excel --inpfile path/to/report.json
 Options:
 
 - `--output-format excel` — the default and the only implemented format here.
+- `--output-filename PATH` — set the output file name (and path) explicitly. When
+  provided it is used verbatim (no `.xlsx` is appended); otherwise the name is derived
+  from the input JSON file.
 - `--flags LIST` — comma-delimited flags that toggle behavior (e.g. the
   translation-overlay preparation plugin is enabled by a flag).
 
