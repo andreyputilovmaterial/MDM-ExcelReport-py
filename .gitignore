@@ -18,6 +18,7 @@ tests-real-sensitive-data/
 # --- Python artifacts ---
 __pycache__/
 *.pyc
+.venv/
 
 # --- OS junk files ---
 

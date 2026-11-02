@@ -1,6 +1,9 @@
 # Project Context — MDM-ExcelReport-py (`mdmexcelreportpy`)
 
 > Last updated: 2026-11-02
+> (2026-11-02) Packaging/docs: `requirements.txt` already lists `pandas`/`xlsxwriter`;
+> documented the three launch strategies in `README.md`. No `build.bat`/`run_init` yet
+> (pinliner bundling is still declined for this submodule — see §5).
 > Status: `column_headers` support added (human-readable headers by default, raw field
 > names via a CLI flag); tests added.
 > (2026-11-02) Implemented `column_headers`: Excel now writes human-readable headers by

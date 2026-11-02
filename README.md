@@ -33,6 +33,32 @@ Or through the universal launcher:
 python src/launcher.py --program report_excel --inpfile path/to/report.json
 ```
 
+### Three ways to launch
+
+As everywhere in this toolchain, the program can be started three equivalent ways:
+
+1. **Single-file bundle** (distribution). A `build.bat`/`build.sh` would produce
+   `dist/mdmtoolsap_bundle.py` and append `from src import launcher; launcher.main()`
+   (not yet enabled for this submodule — see `docs/project-context.md`). When enabled,
+   run it after `run_init`:
+
+   ```
+   run_init.sh
+   ./.venv/bin/python dist/mdmtoolsap_bundle.py --program report_excel --inpfile path/to/report.json
+   ```
+
+2. **Direct module** (development). Run the entry-point module directly:
+
+   ```
+   python src/report_create.py --inpfile path/to/report.json
+   ```
+
+3. **Launcher proxy** (development). Run the universal dispatcher directly:
+
+   ```
+   python src/launcher.py --program report_excel --inpfile path/to/report.json
+   ```
+
 Options:
 
 - `--output-format excel` — the default and the only implemented format here.
