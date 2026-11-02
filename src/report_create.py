@@ -89,6 +89,7 @@ class ReportDocument:
         #     self.config["columns"] = ['name']
         
         self.config['columns'] = [ c for c in (inp['report_scheme']['columns'] if ('columns' in inp['report_scheme']) else []) ] if 'report_scheme' in inp else []
+        self.config['column_headers'] = ( inp['report_scheme']['column_headers'] if ('column_headers' in inp['report_scheme']) else {} ) if 'report_scheme' in inp else {}
         if 'flags' not in self.config:
             self.config['flags'] = []
 
@@ -181,14 +182,19 @@ class ReportDocument:
                 except TypeError as e:
                     worksheet.write(r, c, '{t}'.format(t=cell))
 
+        def write_header_cell(worksheet, r, c, value):
+            cell = [part for part in util_format_mddread_inputs.sanitize(value)]
+            write_cell(worksheet, r, c, cell)
+
         for o in self.dataframes:
             worksheet = workbook.add_worksheet(o['name'])
 
             df = o['df']
 
-            write_cell(worksheet, 0, 0, df.index.name or "")
-            for c, col_name in enumerate(df.columns):
-                write_cell(worksheet,0, c + 1, col_name)
+            column_headers = o['column_headers'] if isinstance(o.get('column_headers'), dict) else {}
+            for c, col_id in enumerate(o['columns']):
+                write_header_cell(worksheet, 0, c, column_headers.get(col_id, col_id))
+
             for r, idx in enumerate(df.index):
                 write_cell(worksheet,r + 1, 0, idx)  # +1 because row 0 is for headers
 
@@ -275,6 +281,13 @@ def entry_point(*argcs,**kwargs):
             type=str,
             required=False
         )
+        parser.add_argument(
+            '--config-column-headers',
+            help='Which labels to use for column headers: "text" (human-readable text from column_headers; default) or "fieldname" (raw JSON field names)',
+            choices=['text', 'fieldname'],
+            default='text',
+            required=False
+        )
         # args = None
         # args_rest = None
         # if( ('arglist_strict' in config) and (not config['arglist_strict']) ):
@@ -311,6 +324,8 @@ def entry_point(*argcs,**kwargs):
 
         if args.flags:
             config['flags'] = '{s}'.format(s=args.flags).split(',')
+
+        config['column_headers_mode'] = args.config_column_headers
 
         result = None
         if config_output_format=='excel':

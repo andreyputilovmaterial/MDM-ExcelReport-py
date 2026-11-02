@@ -1,9 +1,10 @@
 # Project Context — MDM-ExcelReport-py (`mdmexcelreportpy`)
 
 > Last updated: 2026-11-02
-> Status: initial capture.
-> (2026-11-02) Recorded decision: rich-text (`parts`/`role`) `column_headers` are
-> supported in the common JSON shape; Excel support is a to-do (see `roadmap.md`).
+> Status: `column_headers` support added (human-readable headers by default, raw field
+> names via a CLI flag); tests added.
+> (2026-11-02) Implemented `column_headers`: Excel now writes human-readable headers by
+> default and raw column ids via `--config-column-headers fieldname` (see §4/§5).
 >
 > **Convention:** read this file at the start of every task and update it at the end,
 > so it stays the permanently updated context of the current work (see
@@ -42,10 +43,13 @@ and is used by the broader tool set (e.g. translation-overlay workflows).
 - **Excel is both worse and better than HTML.** Worse for filtering/copying (properties
   and diff are inline within cells); better for a wider tool ecosystem (e.g.
   translation-overlay helper).
-- **Rich-text column headers (decision).** The common JSON shape now allows
-  `column_headers` values to be rich text (`parts`/`role`) like cell values. Excel
-  currently ignores `column_headers` (it writes raw column ids); supporting rich-text
-  headers here is recorded as a to-do.
+- **Column headers (decision).** The header row is now configurable via
+  `--config-column-headers {text|fieldname}`. `text` (default) resolves each column id
+  through the merged `column_headers` (global `report_scheme.column_headers`, with
+  per-section `section.column_headers` winning, falling back to the field name);
+  `fieldname` uses the raw JSON field names. Header values accept the same rich-text
+  (`parts`/`role`) shapes as cell values and are rendered through the existing
+  `sanitize` + `write_rich_string` path, so diff coloring also applies to headers.
 - **Source of truth for the data format is `mdmreportpy`.** Its
   `docs/report-json-format.md` and `docs/rich-text-format.md` are the master definition
   of the report JSON shape and the rich-text format; this package defers to them.
@@ -65,6 +69,18 @@ and is used by the broader tool set (e.g. translation-overlay workflows).
 - Added `worksheet.freeze_panes(1, 1)` so the header row and first column stay visible.
 - Declined pinliner/`build.bat` for this submodule for now (keep pinliner only where it
   already exists).
+
+## 5b. Findings / changes (2026-11-02)
+
+- Added `resolve_column_headers` to `util_format_mddread_inputs.py`; `prep_dataframes`
+  now returns `columns` and a resolved `column_headers` mapping per section, and
+  `write_to_file` writes the header row from that mapping (sanitizing rich-text values).
+- Added `--config-column-headers {text|fieldname}` (default `text`) to `report_create.py`
+  and plumbed it via `config['column_headers_mode']`.
+- Added `tests/test_column_headers.py` (10 `unittest` cases; run with
+  `python -m unittest discover -s tests`). Verified end-to-end that the `.xlsx` header
+  row renders `['Item name', 'Item label', 'English']` in `text` mode and
+  `['name', 'label', 'langcode-ENU']` in `fieldname` mode.
 
 ## 6. Roadmap
 

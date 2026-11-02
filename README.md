@@ -41,6 +41,11 @@ Options:
   from the input JSON file.
 - `--flags LIST` — comma-delimited flags that toggle behavior (e.g. the
   translation-overlay preparation plugin is enabled by a flag).
+- `--config-column-headers {text|fieldname}` — which labels to use as the header row.
+  `text` (default) uses the human-readable text from the report's `column_headers`
+  (global `report_scheme.column_headers` merged with per-section overrides, falling back
+  to the field name when a column has no entry); `fieldname` uses the raw JSON field
+  names (column ids).
 
 ## No plugins (unlike `mdmreportpy`)
 

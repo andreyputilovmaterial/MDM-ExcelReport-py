@@ -97,8 +97,25 @@ def sanitize(o):
 
 
 
+def resolve_column_headers(columns, column_headers_global=None, column_headers_section=None, mode='text'):
+    """Return ``{id: header}`` for a section's ``columns``.
+
+    Global ``column_headers`` are merged with the per-section ones (section wins), and
+    any column without an entry falls back to its id. In ``fieldname`` mode the ids are
+    used verbatim (the human-readable text is ignored).
+    """
+    merged = {}
+    if column_headers_global:
+        merged.update(column_headers_global)
+    if column_headers_section:
+        merged.update(column_headers_section)
+    if mode == 'fieldname':
+        return {col: col for col in columns}
+    return {col: merged.get(col, col) for col in columns}
+
+
 def prep_dataframes(inp,config):
-    """Return ``{name, df}`` entries: an overview sheet plus one per report section."""
+    """Return ``{name, df, columns, column_headers}`` entries: an overview sheet plus one per report section."""
     def sanitize_wrapped(s):
         # return [(s,'')]
         result = sanitize(s)
@@ -111,6 +128,9 @@ def prep_dataframes(inp,config):
             data.append(*row_formatted)
         return data.to_df()
     
+    column_headers_global = config.get('column_headers', {}) if isinstance(config, dict) else {}
+    column_headers_mode = config.get('column_headers_mode', 'text') if isinstance(config, dict) else 'text'
+
     report_data_sections = []
 
     # add overview df
@@ -121,7 +141,20 @@ def prep_dataframes(inp,config):
     for section_obj in ( inp['sections'] if 'sections' in inp else [] ):
         report_data_sections.append(prep_datasection_from_mddread_section(section_obj,config))
 
-    return [ { 'name': o['name'], 'df': df_prep(o) } for o in report_data_sections ]
+    return [
+        {
+            'name': o['name'],
+            'df': df_prep(o),
+            'columns': o['columns'],
+            'column_headers': resolve_column_headers(
+                o['columns'],
+                column_headers_global,
+                o.get('column_headers') or {},
+                column_headers_mode,
+            ),
+        }
+        for o in report_data_sections
+    ]
 
 
 

@@ -32,10 +32,11 @@ This page only notes the Excel-specific handling. Sections map to worksheets: on
 per section, plus an "overview" sheet built from `report_type`, `source_file`,
 timestamps and `source_file_metadata`.
 
-`column_headers` values are not currently consumed for sheet titles: Excel writes the
-raw column ids as column names. **Decision (2026-11-02):** rich-text `column_headers`
-(`parts`/`role`) is a supported format in the common JSON shape; supporting it here
-(and surfacing human-readable headers at all) is a to-do (see `docs/roadmap.md`).
+`column_headers` values (global `report_scheme.column_headers` merged with per-section
+`section.column_headers`, section wins) provide human-readable column titles. Excel
+writes them as the header row by default; `--config-column-headers fieldname` switches
+to the raw column ids. Header values accept the same rich-text (`parts`/`role`) shapes
+as cell values and are rendered through the same sanitize/color path.
 
 ## 4. Excel vs HTML
 

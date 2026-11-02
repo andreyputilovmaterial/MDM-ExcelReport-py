@@ -15,7 +15,9 @@ Tasks listed here are not necessarily ordered by priority.
   hook or grow into a real plugin system.
 - Add automated tests (none exist yet).
 - Test against real MDD/diff JSON output and capture findings back here.
-- Support `column_headers` (currently ignored — Excel writes raw column ids). When
-  implemented, accept the rich-text (`parts`/`role`) header format (source of truth:
-  `mdmreportpy`'s `docs/rich-text-format.md`) and render parts by role.
+- ~~Support `column_headers`~~ — done: Excel writes human-readable headers by default
+  (from global `report_scheme.column_headers` merged with per-section overrides, falling
+  back to the field name), rendered through the same rich-text (`parts`/`role`) sanitize
+  path as cell values. `--config-column-headers fieldname` switches back to raw column
+  ids.
 
