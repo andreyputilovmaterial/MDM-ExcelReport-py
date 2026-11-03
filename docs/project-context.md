@@ -1,6 +1,11 @@
 # Project Context — MDM-ExcelReport-py (`mdmexcelreportpy`)
 
 > Last updated: 2026-11-03
+> (2026-11-03) Added `tests/fixtures/` with committed example *inputs* (`*.mdd.json`)
+> and `tests/test_fixtures.py` preparing DataFrames and writing a workbook per input.
+> `.xlsx` outputs are generated in-test rather than stored. A local `.gitignore`
+> re-includes `report.diff.*`.
+
 > (2026-11-03) Launcher smoke test: added a dependency-free ``--program done`` (prints
 > ``done`` in green) to ``src/launcher.py`` plus ``tests/test_done_program.py``.
 > ``report_create`` (and therefore pandas/xlsxwriter) is now imported lazily via
