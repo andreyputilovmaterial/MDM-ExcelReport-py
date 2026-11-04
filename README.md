@@ -24,13 +24,13 @@ Input JSON is produced by the same readers and the diff tool that feed `mdmrepor
 Direct (during development):
 
 ```
-python src/report_create.py --inpfile path/to/report.json
+python -m src.report_create --inpfile path/to/report.json
 ```
 
 Or through the universal launcher:
 
 ```
-python src/launcher.py --program report_excel --inpfile path/to/report.json
+python -m src.launcher --program report_excel --inpfile path/to/report.json
 ```
 
 ### Three ways to launch
@@ -38,25 +38,25 @@ python src/launcher.py --program report_excel --inpfile path/to/report.json
 As everywhere in this toolchain, the program can be started three equivalent ways:
 
 1. **Single-file bundle** (distribution). A `build.bat`/`build.sh` would produce
-   `dist/mdmtoolsap_bundle.py` and append `from src import launcher; launcher.main()`
-   (not yet enabled for this submodule — see `docs/project-context.md`). When enabled,
-   run it after `run_init`:
+   `dist/mdmtoolsap_bundle.py` with pinliner's `--main src.launcher --main-attr main`
+   entry point (not yet enabled for this submodule — see `docs/project-context.md`).
+   When enabled, run it after `run_init`:
 
    ```
    run_init.sh
    ./.venv/bin/python dist/mdmtoolsap_bundle.py --program report_excel --inpfile path/to/report.json
    ```
 
-2. **Direct module** (development). Run the entry-point module directly:
+2. **Direct module** (development). Run the entry-point module directly with `-m`:
 
    ```
-   python src/report_create.py --inpfile path/to/report.json
+   python -m src.report_create --inpfile path/to/report.json
    ```
 
-3. **Launcher proxy** (development). Run the universal dispatcher directly:
+3. **Launcher proxy** (development). Run the universal dispatcher with `-m`:
 
    ```
-   python src/launcher.py --program report_excel --inpfile path/to/report.json
+   python -m src.launcher --program report_excel --inpfile path/to/report.json
    ```
 
 Options:

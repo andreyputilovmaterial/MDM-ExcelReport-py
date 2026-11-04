@@ -22,22 +22,15 @@ import xlsxwriter
 
 
 
-if __name__ == '__main__':
-    # run as a program
-    import util_format_mddread_inputs
-    import plugins
-    # import format_sheet as excel_openpyxl_format_sheet
-    # import format_sheet_overview as excel_openpyxl_format_sheet_overview
-    import format_sheet_xlsxwriter as excel_xlsxwriter_format_sheet
-elif '.' in __name__:
-    # package
+if __package__:
+    # package context
     from . import util_format_mddread_inputs
     from . import plugins
     # from . import format_sheet_openpyxl as excel_openpyxl_format_sheet
     # from . import format_sheet_openpyxl_overview as excel_openpyxl_format_sheet_overview
     from . import format_sheet_xlsxwriter as excel_xlsxwriter_format_sheet
 else:
-    # included with no parent package
+    # flat context: no parent package
     import util_format_mddread_inputs
     import plugins
     # import format_sheet as excel_openpyxl_format_sheet

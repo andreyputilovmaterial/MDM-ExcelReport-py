@@ -11,15 +11,7 @@ import re
 
 
 
-if __name__ == '__main__':
-    # run as a program
-    import util_dataframe_wrapper
-elif '.' in __name__:
-    # package
-    from . import util_dataframe_wrapper
-else:
-    # included with no parent package
-    import util_dataframe_wrapper
+from . import util_dataframe_wrapper
 
 
 

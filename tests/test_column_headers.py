@@ -4,9 +4,9 @@ import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import util_format_mddread_inputs as uf
+from src import util_format_mddread_inputs as uf
 
 
 def _sample_inp():
